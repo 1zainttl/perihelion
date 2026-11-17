@@ -82,6 +82,19 @@ export const DUST = {
   maxSunDist: 400,
 };
 
+// The Seven Nights: each completed orbit raises the curtain on a new night
+// with its own temper. Multipliers stack on top of the level scaling, so the
+// star gets faster, hotter and meaner the longer you survive.
+export const NIGHTS = [
+  { name: 'FIRST LIGHT',    epithet: 'learn the star\'s temper',   flareGap: 1,    flareSweep: 1,    rockGap: 1,    rockSpeed: 1,    heat: 1,    dust: 1   },
+  { name: 'SOLAR WIND',     epithet: 'the flares quicken',         flareGap: 0.8,  flareSweep: 1.25, rockGap: 1,    rockSpeed: 1,    heat: 1,    dust: 1   },
+  { name: 'EMBER SWARM',    epithet: 'the belt throws stones',     flareGap: 1,    flareSweep: 1,    rockGap: 0.7,  rockSpeed: 1.25, heat: 1,    dust: 1   },
+  { name: 'TOTALITY',       epithet: 'the corona burns longer',    flareGap: 0.75, flareSweep: 1.1,  rockGap: 1,    rockSpeed: 1,    heat: 1.25, dust: 1.5 },
+  { name: 'FIRE SEASON',    epithet: 'the heat lingers',           flareGap: 0.7,  flareSweep: 1.2,  rockGap: 0.9,  rockSpeed: 1.1,  heat: 1.4,  dust: 1.5 },
+  { name: 'THE LONG DARK',  epithet: 'fast rocks, sweeping fire',  flareGap: 0.75, flareSweep: 1.4,  rockGap: 0.55, rockSpeed: 1.4,  heat: 1.3,  dust: 1.5 },
+  { name: 'CORONA MAXIMA',  epithet: 'the star gives everything',  flareGap: 0.55, flareSweep: 1.5,  rockGap: 0.5,  rockSpeed: 1.5,  heat: 1.5,  dust: 2   },
+];
+
 export const COLORS = {
   void: '#06030f',
   sunCore: '#fff3d6',

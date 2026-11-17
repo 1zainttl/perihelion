@@ -9,7 +9,7 @@ export function createHazards() {
   let rocks = [];
   let timer = ROCKS.firstAt;
 
-  const spawnRock = (level) => {
+  const spawnRock = (level, speedMul = 1) => {
     // Spawn just off a random edge, aimed loosely at the play field.
     const edge = Math.floor(rand(4));
     const m = 30;
@@ -21,7 +21,7 @@ export function createHazards() {
     const tx = STAGE.w / 2 + rand(-260, 260);
     const ty = STAGE.h / 2 + rand(-180, 180);
     const a = Math.atan2(ty - y, tx - x);
-    const s = rand(...ROCKS.speed) + ROCKS.speedPerLevel * (level - 1);
+    const s = (rand(...ROCKS.speed) + ROCKS.speedPerLevel * (level - 1)) * speedMul;
     const r = rand(...ROCKS.radius);
     const verts = [];
     const n = 8;
@@ -35,10 +35,10 @@ export function createHazards() {
   };
 
   return {
-    update(dt, level, comet, particles, onHit) {
-      const gap = Math.max(ROCKS.minGap, rand(...ROCKS.baseGap) - ROCKS.gapPerLevel * (level - 1));
+    update(dt, level, comet, particles, onHit, mods = {}) {
+      const gap = Math.max(ROCKS.minGap, (rand(...ROCKS.baseGap) - ROCKS.gapPerLevel * (level - 1)) * (mods.rockGap ?? 1));
       timer -= dt;
-      if (timer <= 0) { timer = gap; spawnRock(level); }
+      if (timer <= 0) { timer = gap; spawnRock(level, mods.rockSpeed ?? 1); }
 
       for (let i = rocks.length - 1; i >= 0; i--) {
         const rock = rocks[i];

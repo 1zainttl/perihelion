@@ -57,7 +57,7 @@ export function createComet() {
 
       // Heat: the burn band warms you, deep space cools you.
       if (d < SUN.burnRadius) {
-        this.heat = clamp(this.heat + HEAT.rateNear * (1 - d / SUN.burnRadius + 0.35) * dt, 0, 100);
+        this.heat = clamp(this.heat + HEAT.rateNear * (this.heatMul || 1) * (1 - d / SUN.burnRadius + 0.35) * dt, 0, 100);
       } else {
         this.heat = clamp(this.heat - HEAT.coolRate * dt, 0, 100);
       }

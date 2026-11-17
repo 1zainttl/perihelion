@@ -1,7 +1,7 @@
 // HUD: hull and heat bars, the fuel gauge, score with its multiplier, the
-// orbit count and level. Drawn in the canvas so screenshots carry it all.
+// current night and orbit count. Drawn in the canvas so screenshots carry it all.
 
-import { STAGE, COMET, COLORS } from './config.js';
+import { STAGE, COMET, COLORS, NIGHTS } from './config.js';
 import { fmt, clamp } from './utils.js';
 
 function bar(ctx, x, y, w, h, frac, color, label) {
@@ -39,7 +39,8 @@ export function drawHud(ctx, game) {
   ctx.fillStyle = mult > 1 ? COLORS.dust : 'rgba(205, 214, 255, 0.6)';
   ctx.fillText(`×${mult} MULTIPLIER`, STAGE.w - 20, 58);
   ctx.fillStyle = 'rgba(205, 214, 255, 0.6)';
-  ctx.fillText(`ORBIT ${orbits} · LEVEL ${level} · ${Math.floor(time)}s`, STAGE.w - 20, 76);
+  const night = NIGHTS[Math.min(game.night, NIGHTS.length - 1)];
+  ctx.fillText(`NIGHT ${game.night + 1} · ${night.name} · ORBIT ${orbits} · ${Math.floor(time)}s`, STAGE.w - 20, 76);
 
   // Aim line: a faint guide from the comet toward the pointer while playing.
   if (comet.alive && game.input.state.pointerActive) {

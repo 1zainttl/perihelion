@@ -2,7 +2,7 @@
 // results), the scoring (dust, grazes, orbits, multiplier), the escalating
 // level, camera shake, and the glue between sun, comet, hazards and motes.
 
-import { SUN, SCORE, COMET, STAGE } from './config.js';
+import { SUN, SCORE, COMET, STAGE, NIGHTS } from './config.js';
 import { createSun } from './sun.js';
 import { createComet } from './comet.js';
 import { createHazards } from './hazards.js';
@@ -10,10 +10,10 @@ import { createPickups } from './pickups.js';
 import { createParticles } from './particles.js';
 import { createStarfield } from './starfield.js';
 import { drawHud } from './hud.js';
-import { drawTitle, drawPause, drawResults } from './screens.js';
+import { drawTitle, drawPause, drawResults, drawNight } from './screens.js';
 import { clamp, fmt } from './utils.js';
 
-const BEST_KEY = 'perihelion-best';
+const BEST_KEY = 'sunskimmer-best';
 
 export function createGame(input, audio) {
   const sun = createSun();
@@ -23,13 +23,15 @@ export function createGame(input, audio) {
   const pickups = createPickups();
 
   const game = {
-    scene: 'title',       // title | playing | paused | results
+    scene: 'title',       // title | playing | night | paused | results
     t: 0,                 // wall clock for ambient animation
     time: 0,              // seconds of this run
     score: 0,
     mult: 1,
     orbits: 0,
     level: 1,
+    night: 0,             // index into NIGHTS; rises with completed orbits
+    nightT: 0,            // seconds left on the night card
     dustCollected: 0,
     topMult: 1,
     closest: Infinity,    // nearest pass to the sun, px
@@ -49,6 +51,8 @@ export function createGame(input, audio) {
     game.mult = 1;
     game.orbits = 0;
     game.level = 1;
+    game.night = 0;
+    game.nightT = 0;
     game.dustCollected = 0;
     game.topMult = 1;
     game.closest = Infinity;
@@ -129,9 +133,21 @@ export function createGame(input, audio) {
     if (input.took('m')) audio.toggleMute();
     if (game.scene === 'paused') return;
 
+    // Night card: a short breather between nights, world holds its breath.
+    if (game.scene === 'night') {
+      game.nightT -= dt;
+      particles.update(dt);
+      if (game.nightT <= 0 || input.took('__click__') || input.took(' ')) {
+        game.scene = 'playing';
+      }
+      return;
+    }
+
     // --- playing ---
     game.time += dt;
     const comet = game.comet;
+    const mods = NIGHTS[Math.min(game.night, NIGHTS.length - 1)];
+    comet.heatMul = mods.heat;
 
     const event = comet.update(dt, input, particles);
     audio.setThrust(comet.thrusting && comet.alive);
@@ -144,6 +160,14 @@ export function createGame(input, audio) {
       addScore(SCORE.orbit);
       bumpMult();
       audio.orbit(game.level);
+      // A completed orbit opens the next night.
+      const newNight = Math.min(game.orbits, NIGHTS.length - 1);
+      if (newNight > game.night) {
+        game.night = newNight;
+        game.scene = 'night';
+        game.nightT = 2.8;
+        audio.setThrust(false);
+      }
     }
 
     if (!comet.alive) { particles.update(dt); return; }
@@ -163,19 +187,19 @@ export function createGame(input, audio) {
     if (!inBand && d > SUN.grazeBand[1] + 30) game.grazeArmed = true;
     if (game.grazeFlash > 0) game.grazeFlash -= dt;
 
-    // The sun's flares.
-    const sunEvent = sun.update(dt, game.level, Math.atan2(comet.y - SUN.y, comet.x - SUN.x));
+    // The sun's flares, tempered by the night.
+    const sunEvent = sun.update(dt, game.level, Math.atan2(comet.y - SUN.y, comet.x - SUN.x), mods);
     if (sunEvent === 'flare-telegraph') audio.warn();
     if (sun.beamHits(comet.x, comet.y) && comet.invuln <= 0) {
       damage(SCORE ? 24 : 24, 'flare');
     }
 
-    // Asteroids.
-    hazards.update(dt, game.level, comet, particles, (dmg, x, y) => damage(dmg, 'rock', x, y));
+    // Asteroids, likewise.
+    hazards.update(dt, game.level, comet, particles, (dmg, x, y) => damage(dmg, 'rock', x, y), mods);
 
-    // Stardust.
+    // Stardust, worth more on the cruel nights.
     pickups.update(dt, comet, (x, y) => {
-      addScore(SCORE.dust);
+      addScore(Math.round(SCORE.dust * mods.dust));
       game.dustCollected += 1;
       audio.pickup(game.mult);
       particles.sparkle(x, y);
@@ -213,9 +237,10 @@ export function createGame(input, audio) {
 
     ctx.restore();
 
-    if (game.scene === 'playing' || game.scene === 'paused') drawHud(ctx, game);
+    if (game.scene === 'playing' || game.scene === 'paused' || game.scene === 'night') drawHud(ctx, game);
     if (game.scene === 'title') drawTitle(ctx, game.t, game.best);
     if (game.scene === 'paused') drawPause(ctx);
+    if (game.scene === 'night') drawNight(ctx, game, game.t);
     if (game.scene === 'results') drawResults(ctx, game, game.t);
 
     // Vignette on top of everything.

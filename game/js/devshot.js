@@ -33,6 +33,9 @@ export function applyDevShot(game, input, audio) {
   const shot = new URLSearchParams(location.search).get('shot');
   if (!shot) return;
 
+  // Freeze the rAF loop so captures are deterministic; captures pump manually.
+  window.__sunskimmerFreeze = true;
+
   if (shot === 'title') {
     // Let the ambient title animation settle; nothing else to stage.
     game.best = Math.max(game.best, 4820);
@@ -40,7 +43,7 @@ export function applyDevShot(game, input, audio) {
     return;
   }
 
-  if (shot === 'play' || shot === 'graze' || shot === 'over') {
+  if (shot === 'play' || shot === 'graze' || shot === 'over' || shot === 'night') {
     game.start();
     audio.setThrust(false); // headless captures shouldn't hum
 
@@ -51,6 +54,7 @@ export function applyDevShot(game, input, audio) {
     game.topMult = Math.max(game.topMult, game.mult);
     game.orbits = 4;
     game.level = 3;
+    game.night = shot === 'play' ? 1 : shot === 'graze' ? 3 : 4;
     game.dustCollected = 21;
     game.comet.orbits = 4;
     game.comet.fuel = 68;
@@ -82,6 +86,20 @@ export function applyDevShot(game, input, audio) {
       simulate(game, input, 0.32);
       game.grazeFlash = Math.max(game.grazeFlash, 0.5);
       game.comet.heat = 71;
+      return;
+    }
+
+    if (shot === 'night') {
+      placeOnOrbit(game, 235, 225, 1.8);
+      game.orbits = 1;
+      game.comet.orbits = 1;
+      game.time = 41;
+      game.score = 1240;
+      simulate(game, input, 0.8);
+      // Freeze on the night card for NIGHT II.
+      game.night = 1;
+      game.scene = 'night';
+      game.nightT = 2.8;
       return;
     }
 

@@ -43,9 +43,11 @@ function frame(now) {
   let dt = (now - last) / 1000;
   last = now;
   if (dt > 1 / 20) dt = 1 / 20; // tab was hidden: don't teleport the comet
-  game.update(dt);
-  game.draw(ctx);
-  input.endFrame();
+  if (!window.__sunskimmerFreeze) { // devshot captures pump manually
+    game.update(dt);
+    game.draw(ctx);
+    input.endFrame();
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -15,19 +15,22 @@ export function createSun() {
     y: SUN.y,
 
     // Returns an event string when something worth a sound happened.
-    update(dt, level, cometAngle) {
+    // mods: the night's temper (flareGap / flareSweep multipliers).
+    update(dt, level, cometAngle, mods = {}) {
+      const gapMul = mods.flareGap ?? 1;
+      const sweepMul = mods.flareSweep ?? 1;
       coronaT += dt;
       let event = null;
 
       if (!flare) {
         flareTimer -= dt;
         if (flareTimer <= 0) {
-          const gap = Math.max(FLARES.minGap, rand(...FLARES.baseGap) - FLARES.gapPerLevel * (level - 1));
+          const gap = Math.max(FLARES.minGap, (rand(...FLARES.baseGap) - FLARES.gapPerLevel * (level - 1)) * gapMul);
           flareTimer = gap;
           // Erupt toward the comet half the time so the threat feels aimed.
           const aimed = Math.random() < 0.55 && cometAngle !== undefined;
           const angle = aimed ? cometAngle + rand(-0.5, 0.5) : rand(TAU);
-          const sweep = Math.min(FLARES.sweepMax, 0.25 + level * 0.07);
+          const sweep = Math.min(FLARES.sweepMax, (0.25 + level * 0.07) * sweepMul);
           flare = { angle, drift: rand(-sweep, sweep), phase: 'telegraph', t: FLARES.telegraph };
           event = 'flare-telegraph';
         }
