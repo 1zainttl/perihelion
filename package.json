@@ -1,0 +1,9 @@
+{
+  "name": "sunskimmer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SUNSKIMMER — skim the sun, don't burn. Orbital-survival browser game (make.fun best-game-01 entry).",
+  "scripts": {
+    "dev": "node serve.ts"
+  }
+}
