@@ -19,8 +19,9 @@ export const SUN = {
 };
 
 export const COMET = {
-  thrust: 460,         // px/s^2 while burning
-  maxSpeed: 620,
+  thrust: 560,         // px/s^2 while burning
+  steer: 2.2,          // rad/s the velocity vector bends toward the pointer while thrusting
+  maxSpeed: 680,
   fuelMax: 100,
   fuelBurn: 26,        // per second of thrust
   fuelRegen: 9,        // per second coasting
@@ -49,8 +50,8 @@ export const SCORE = {
 };
 
 export const FLARES = {
-  firstAt: 9,          // seconds into the run
-  baseGap: [7.5, 11],  // random gap between eruptions at level 1
+  firstAt: 5,          // seconds into the run
+  baseGap: [6.5, 9.5], // random gap between eruptions at level 1
   gapPerLevel: 0.55,   // gap shrinks per orbit level
   minGap: 3.4,
   telegraph: 1.25,     // wedge glows before the beam fires
@@ -63,8 +64,8 @@ export const FLARES = {
 };
 
 export const ROCKS = {
-  firstAt: 16,
-  baseGap: [6.5, 10],
+  firstAt: 10,
+  baseGap: [5.5, 8.5],
   gapPerLevel: 0.5,
   minGap: 2.6,
   speed: [70, 150],
@@ -75,12 +76,65 @@ export const ROCKS = {
 };
 
 export const DUST = {
-  count: 7,            // motes kept on the field
+  count: 9,            // motes kept on the field
   radius: 5,
   pickup: 16,          // pickup distance from the comet
   minSunDist: 120,     // motes never spawn inside the graze band
   maxSunDist: 400,
 };
+
+// Hunter drones: from the second night on, the star is defended. Hunters
+// chase the comet with a limited turn rate — and they die the way you make
+// them: overheated in the burn band, caught in a flare, or swallowed whole.
+export const HUNTERS = {
+  fromNight: 1,        // NIGHTS index they start appearing on (II: SOLAR WIND)
+  gap: [8, 13],        // seconds between arrivals on their first night
+  gapPerNight: 0.85,   // each later night sends them sooner
+  maxAlive: 3,
+  speed: 168,          // top chase speed
+  accel: 300,
+  turn: 2.4,           // rad/s steering — you can out-turn them, barely
+  radius: 9,
+  heatRate: 95,        // heat/s inside the burn band; 100 heat = dead
+  life: 26,            // seconds before they break off and retreat
+  touchDamage: 18,     // kamikaze hit on the comet
+  score: 150,
+};
+
+// The nightly choice: each new night offers two upgrades, pick one.
+// ids are applied by game.js's applyChoice.
+export const CHOICES = [
+  // → NIGHT II · SOLAR WIND
+  [
+    { id: 'tank',   name: 'AUX TANK',       desc: '+45% fuel capacity' },
+    { id: 'regen',  name: 'RECYCLER',       desc: '+70% fuel regeneration' },
+  ],
+  // → NIGHT III · EMBER SWARM
+  [
+    { id: 'armour', name: 'ARMOUR PLATING', desc: '+35 hull, fitted at once' },
+    { id: 'shield', name: 'HEATSHIELD',     desc: 'corona heat builds 30% slower' },
+  ],
+  // → NIGHT IV · TOTALITY
+  [
+    { id: 'engine', name: 'VECTOR ENGINE',  desc: '+22% thrust' },
+    { id: 'scoop',  name: 'WIDEBAND SCOOP', desc: 'graze band 18 km wider' },
+  ],
+  // → NIGHT V · FIRE SEASON
+  [
+    { id: 'lean',   name: 'LEAN BURN',      desc: 'thrust costs 30% less fuel' },
+    { id: 'core',   name: 'REINFORCED CORE', desc: '+35 hull, fitted at once' },
+  ],
+  // → NIGHT VI · THE LONG DARK
+  [
+    { id: 'over',   name: 'OVERDRIVE',      desc: '+15% top speed' },
+    { id: 'fins',   name: 'COOLANT FINS',   desc: 'cool down 55% faster' },
+  ],
+  // → NIGHT VII · CORONA MAXIMA
+  [
+    { id: 'pred',   name: 'PREDATOR PROTOCOL', desc: 'hunter kills score double' },
+    { id: 'magnet', name: 'STARDUST MAGNET',   desc: '+60% pickup reach' },
+  ],
+];
 
 // The Seven Nights: each completed orbit raises the curtain on a new night
 // with its own temper. Multipliers stack on top of the level scaling, so the

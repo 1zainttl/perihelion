@@ -127,6 +127,19 @@ export function createAudio() {
       blip({ type: 'square', from: 220, to: 180, t: 0.16, vol: 0.1 });
       blip({ type: 'square', from: 220, to: 180, t: 0.16, vol: 0.1, delay: 0.2 });
     },
+    hunterWarn() {
+      blip({ type: 'square', from: 165, to: 140, t: 0.13, vol: 0.09 });
+      blip({ type: 'square', from: 165, to: 140, t: 0.13, vol: 0.09, delay: 0.16 });
+    },
+    hunterDown() {
+      noiseBurst({ t: 0.4, vol: 0.32, from: 1500, to: 110 });
+      blip({ type: 'triangle', from: 660, to: 990, t: 0.16, vol: 0.12, delay: 0.03 });
+      blip({ type: 'sine', from: 1320, t: 0.12, vol: 0.07, delay: 0.1 });
+    },
+    pick() {
+      blip({ type: 'triangle', from: 440, to: 660, t: 0.12, vol: 0.14 });
+      blip({ type: 'triangle', from: 660, to: 880, t: 0.15, vol: 0.12, delay: 0.09 });
+    },
     hit() {
       noiseBurst({ t: 0.3, vol: 0.4, from: 900, to: 160 });
       blip({ type: 'sawtooth', from: 160, to: 60, t: 0.3, vol: 0.2 });

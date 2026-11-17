@@ -31,10 +31,10 @@ export function createPickups() {
       }
     },
 
-    update(dt, comet, onCollect) {
+    update(dt, comet, onCollect, reachMul = 1) {
       for (const m of motes) {
         m.phase += dt * 2.2;
-        if (!m.taken && comet.alive && dist(m.x, m.y, comet.x, comet.y) < DUST.pickup + 4) {
+        if (!m.taken && comet.alive && dist(m.x, m.y, comet.x, comet.y) < (DUST.pickup + 4) * reachMul) {
           m.taken = true;
           onCollect(m.x, m.y);
           place(m); // respawn somewhere new

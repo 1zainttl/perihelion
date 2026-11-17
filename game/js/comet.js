@@ -3,13 +3,15 @@
 // records where it has flown.
 
 import { SUN, COMET, HEAT, FAR_ORBIT, COLORS } from './config.js';
-import { clamp, dist, angleTo, TAU } from './utils.js';
+import { clamp, dist, angleTo, angleDelta, TAU } from './utils.js';
 
 export function createComet() {
   return {
     x: COMET.spawn.x, y: COMET.spawn.y,
     vx: COMET.spawn.vx, vy: COMET.spawn.vy,
     fuel: COMET.fuelMax,
+    fuelMax: COMET.fuelMax,   // upgrades can grow these
+    hullMax: COMET.hullMax,
     hull: COMET.hullMax,
     heat: 0,
     invuln: 0,
@@ -19,7 +21,9 @@ export function createComet() {
     lastAngle: Math.atan2(COMET.spawn.y - SUN.y, COMET.spawn.x - SUN.x),
     orbits: 0,
 
-    update(dt, input, particles) {
+    // up: the player's chosen upgrade multipliers (thrust, burn, regen,
+    // maxSpeed, heat, cool — all default 1).
+    update(dt, input, particles, up = {}) {
       if (!this.alive) return null;
 
       // Gravity: softened inverse-distance pull toward the sun.
@@ -33,9 +37,19 @@ export function createComet() {
       this.thrusting = input.state.thrust && this.fuel > 0;
       if (this.thrusting) {
         const a = angleTo(this.x, this.y, input.state.px, input.state.py);
-        this.vx += Math.cos(a) * COMET.thrust * dt;
-        this.vy += Math.sin(a) * COMET.thrust * dt;
-        this.fuel = Math.max(0, this.fuel - COMET.fuelBurn * dt);
+        const thrust = COMET.thrust * (up.thrust ?? 1);
+        this.vx += Math.cos(a) * thrust * dt;
+        this.vy += Math.sin(a) * thrust * dt;
+        // Vectoring: the velocity bends toward where you point, so the ship
+        // answers the stick while the star still owns the orbit.
+        const sp = Math.hypot(this.vx, this.vy);
+        if (sp > 1) {
+          const cur = Math.atan2(this.vy, this.vx);
+          const bend = clamp(angleDelta(cur, a), -COMET.steer * dt, COMET.steer * dt);
+          this.vx = Math.cos(cur + bend) * sp;
+          this.vy = Math.sin(cur + bend) * sp;
+        }
+        this.fuel = Math.max(0, this.fuel - COMET.fuelBurn * (up.burn ?? 1) * dt);
         const back = angleTo(input.state.px, input.state.py, this.x, this.y);
         particles.exhaust(
           this.x + Math.cos(back) * 8, this.y + Math.sin(back) * 8,
@@ -44,22 +58,24 @@ export function createComet() {
         );
       } else {
         const far = d > FAR_ORBIT;
-        this.fuel = Math.min(COMET.fuelMax, this.fuel + (far ? COMET.fuelRegenFar : COMET.fuelRegen) * dt);
+        const regen = (far ? COMET.fuelRegenFar : COMET.fuelRegen) * (up.regen ?? 1);
+        this.fuel = Math.min(this.fuelMax, this.fuel + regen * dt);
       }
 
+      const maxSpeed = COMET.maxSpeed * (up.maxSpeed ?? 1);
       const speed = Math.hypot(this.vx, this.vy);
-      if (speed > COMET.maxSpeed) {
-        this.vx = (this.vx / speed) * COMET.maxSpeed;
-        this.vy = (this.vy / speed) * COMET.maxSpeed;
+      if (speed > maxSpeed) {
+        this.vx = (this.vx / speed) * maxSpeed;
+        this.vy = (this.vy / speed) * maxSpeed;
       }
       this.x += this.vx * dt;
       this.y += this.vy * dt;
 
       // Heat: the burn band warms you, deep space cools you.
       if (d < SUN.burnRadius) {
-        this.heat = clamp(this.heat + HEAT.rateNear * (this.heatMul || 1) * (1 - d / SUN.burnRadius + 0.35) * dt, 0, 100);
+        this.heat = clamp(this.heat + HEAT.rateNear * (this.heatMul || 1) * (up.heat ?? 1) * (1 - d / SUN.burnRadius + 0.35) * dt, 0, 100);
       } else {
-        this.heat = clamp(this.heat - HEAT.coolRate * dt, 0, 100);
+        this.heat = clamp(this.heat - HEAT.coolRate * (up.cool ?? 1) * dt, 0, 100);
       }
       let event = null;
       if (this.heat > HEAT.damageFrom) {

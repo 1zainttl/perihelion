@@ -3,7 +3,7 @@
 // Everything here drives the same update/draw path a player would hit —
 // no drawing happens outside the normal renderer.
 
-import { SUN, COMET } from './config.js';
+import { SUN, COMET, NIGHTS } from './config.js';
 
 // Advance the simulation with a scripted input for `seconds`, in fixed steps.
 function simulate(game, input, seconds, script = () => {}) {
@@ -43,7 +43,7 @@ export function applyDevShot(game, input, audio) {
     return;
   }
 
-  if (shot === 'play' || shot === 'graze' || shot === 'over' || shot === 'night') {
+  if (shot === 'play' || shot === 'graze' || shot === 'over' || shot === 'night' || shot === 'hunt') {
     game.start();
     audio.setThrust(false); // headless captures shouldn't hum
 
@@ -100,6 +100,21 @@ export function applyDevShot(game, input, audio) {
       game.night = 1;
       game.scene = 'night';
       game.nightT = 2.8;
+      return;
+    }
+
+    if (shot === 'hunt') {
+      // A hunter mid-chase. Pin deep into the nights so one rides in fast,
+      // and a completed orbit can't open a choice card over the pose.
+      game.night = NIGHTS.length - 1;
+      game.orbits = 17;
+      game.comet.orbits = 17;
+      game.kills = 1;
+      game.time = 96;
+      game.score = 3120;
+      placeOnOrbit(game, 250, 230, 2.4);
+      // No burn: hold the clean orbit while a hunter rides in and closes.
+      simulate(game, input, 9.5);
       return;
     }
 

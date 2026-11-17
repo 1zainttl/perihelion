@@ -22,13 +22,21 @@ export function drawHud(ctx, game) {
   const { comet, score, mult, orbits, level, time } = game;
 
   // Top-left: hull and heat.
-  bar(ctx, 18, 22, 150, 9, game.comet.hull / COMET.hullMax,
+  bar(ctx, 18, 22, 150, 9, game.comet.hull / game.comet.hullMax,
     game.comet.hull > 35 ? COLORS.good : COLORS.danger, 'HULL');
   bar(ctx, 18, 46, 150, 7, game.comet.heat / 100,
     game.comet.heat > 78 ? COLORS.danger : COLORS.sunMid, 'HEAT');
 
+  // Hunter tally, once the hunt is on.
+  if (game.kills > 0) {
+    ctx.textAlign = 'left';
+    ctx.font = '700 12px "Avenir Next", system-ui, sans-serif';
+    ctx.fillStyle = COLORS.danger;
+    ctx.fillText(`HUNTERS DOWN  ${game.kills}`, 18, 84);
+  }
+
   // Bottom-left: fuel.
-  bar(ctx, 18, STAGE.h - 30, 150, 8, game.comet.fuel / COMET.fuelMax, '#6ea8ff', 'FUEL');
+  bar(ctx, 18, STAGE.h - 30, 150, 8, game.comet.fuel / game.comet.fuelMax, '#6ea8ff', 'FUEL');
 
   // Top-right: score block.
   ctx.textAlign = 'right';
